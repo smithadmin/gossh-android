@@ -1,7 +1,7 @@
 # GoSSH for Android
 
 SSH + Telnet client with user-definable command buttons, tabs, prompting buttons
-and per-session colors - the Android counterpart of the desktop GoSSH.
+and per-session colors - the Android counterpart of the desktop (GoSSH)[https://github.com/smithadmin/gossh].
 
 Kotlin + Jetpack Compose. SSH via JSch (mwiede fork), telnet implemented in-app,
 terminal rendering by xterm.js inside a WebView.
