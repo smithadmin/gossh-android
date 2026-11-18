@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<link rel="stylesheet" href="xterm.css">
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  #t { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+</style>
+<script src="xterm.js"></script>
+<script src="addon-fit.js"></script>
+</head>
+<body>
+<div id="t"></div>
+<script>
+  var term = new Terminal({ cursorBlink: true, fontFamily: 'monospace', fontSize: 14, scrollback: 5000 });
+  var fit = new FitAddon.FitAddon();
+  term.loadAddon(fit);
+  var el = document.getElementById('t');
+  term.open(el);
+  var ta = term.textarea;
+  if (ta) {
+    ta.setAttribute('autocapitalize', 'off');
+    ta.setAttribute('autocorrect', 'off');
+    ta.setAttribute('autocomplete', 'off');
+    ta.setAttribute('spellcheck', 'false');
+  }
+  term.onData(function (d) { Android.onData(d); });
+
+  var lastC = 0, lastR = 0;
+  function doFit() {
+    if (!el.clientWidth || !el.clientHeight) return;   // not attached / zero size yet
+    try { fit.fit(); } catch (e) { return; }
+    if (term.cols !== lastC || term.rows !== lastR) {
+      lastC = term.cols; lastR = term.rows;
+      Android.onResize(term.cols, term.rows);
+    }
+  }
+  new ResizeObserver(doFit).observe(el);
+  window.addEventListener('resize', doFit);
+
+  // Output arrives from Kotlin as base64 so raw bytes (UTF-8 split across reads) survive.
+  function w(b64) {
+    var s = atob(b64), u = new Uint8Array(s.length);
+    for (var i = 0; i < s.length; i++) u[i] = s.charCodeAt(i);
+    term.write(u);
+  }
+  function setTheme(bg, fg, ac) {
+    if (bg) {
+      term.options.theme = { background: bg, foreground: fg, cursor: ac, cursorAccent: bg, selectionBackground: ac + '66' };
+      document.body.style.background = bg;
+    } else {
+      term.options.theme = {};
+      document.body.style.background = '#000';
+    }
+  }
+  function setFont(px) { term.options.fontSize = px; doFit(); }
+
+  doFit();
+  Android.onReady();
+</script>
+</body>
+</html>
